@@ -50,55 +50,41 @@ public class ProjectTest {
         AtomicBoolean wasCaught = new AtomicBoolean(false);
         String correct_json_string = "{\"UniqueID\":\"6c8k7a37c\",\"ProductCode\":\"04321\",\"ProductName\":\"SOME_KIT\",\"PriceWholesale\":\"190.80\",\"PriceRetail\":\"210.40\",\"InStock\":\"300\"}";
         new ContextConfigurator(QUEUE_NAME,BROKER_URL).configure(queueRoute);
-        new ContextConfigurator(QUEUE_NAME, BROKER_URL).configure(new TestRoute(routeParameters, new Processor() {
-            @Override
-            public void process(Exchange exchange) throws Exception {
-                from("activeMQ:test_message").process(exchange -> {
-                    String received_message = exchange.getIn().getBody(String.class);
-                    System.out.println("received_message = " + received_message);
-                    System.out.println("coorect Stringgg = " + correct_json_string);
-                    try {
-                        assertEquals(correct_json_string, received_message);
-                    } catch (AssertionError error) {
-                        wasCaught.set(true);
-                    }
-                }).to(RECEIVED_FILE_PATH + "?filename=test_file.json");
-            }
-        }));
-            camelContext.addRoutes(new RouteBuilder() {
-                @Override
-                public void configure() {
-                }
-            });
-        camelContext.start();
-        Thread.sleep(4_000);
-        camelContext.close();
+        new ContextConfigurator(QUEUE_NAME, BROKER_URL).configure(new TestRoute(new RouteParameters
+                ("activeMQ:test_message", "file://src/test/received_files?filename=test.json", false,
+                        null, null), exchange -> {
+                                String received_message = exchange.getIn().getBody(String.class);
+                                System.out.println("received_message = " + received_message);
+                                System.out.println("coorect Stringgg = " + correct_json_string);
+                                try {
+                                    assertEquals(correct_json_string, received_message);
+                                } catch (AssertionError error) {
+                                    wasCaught.set(true);
+                                }
+                            }));
+
         assertFalse(wasCaught.get());
     }
 
     @Test
     public void isJsonValid() throws Exception {
         AtomicBoolean isValid = new AtomicBoolean(true);
-        CamelContext camelContext = new DefaultCamelContext();
-        camelContext.addRoutes(new RouteBuilder() {
+        new ContextConfigurator().configure(new TestRoute(new RouteParameters("file://src/received_files",
+                null, true, null, null), new Processor() {
             @Override
-            public void configure() {
-                from(RECEIVED_FILE_PATH + "?noop=true")
-                        .process(exchange -> {
-                            String json_string = exchange.getIn().getBody(String.class);
-                            try {
-                                Gson gson = new Gson();
-                                gson.fromJson(json_string, Object.class);
+            public void process(Exchange exchange) {
+                 {
+                     String json_string = exchange.getIn().getBody(String.class);
+                     try {
+                         Gson gson = new Gson();
+                         gson.fromJson(json_string, Object.class);
 
-                            } catch (JsonSyntaxException e) {
-                                isValid.set(false);
-                            }
-                        });
-            }
-        });
-        camelContext.start();
-        Thread.sleep(4_000);
-        camelContext.close();
+                     } catch (JsonSyntaxException e) {
+                         isValid.set(false);
+                     }
+                 }
+                }
+        }));
         assertTrue(isValid.get());
 
     }

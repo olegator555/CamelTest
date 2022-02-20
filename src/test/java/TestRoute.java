@@ -16,13 +16,16 @@ public class TestRoute extends QueueRoute {
 
     @Override
     public void configure() {
-        if(routeParameters.getTo() != null) {
+        boolean isToNull = false;
+        try {
+            routeParameters.getTo();
+        } catch (NullPointerException e) {
+            isToNull = true;
+        }
+        if(isToNull)
             from(routeParameters.getFrom()).process(processor);
-        }
-        else {
-            from(routeParameters.getFrom())
-                    .process(processor)
-                    .to(routeParameters.getTo());
-        }
+        else
+            from(routeParameters.getFrom()).process(processor).to(routeParameters.getTo());
+
     }
 }

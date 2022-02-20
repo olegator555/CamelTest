@@ -7,7 +7,7 @@ import org.apache.camel.spi.DataFormat;
 
 
 public class QueueRoute extends RouteBuilder {
-    private final RouteParameters routeParameters;
+    private RouteParameters routeParameters;
 
     public QueueRoute(RouteParameters routeParameters) {
         this.routeParameters = routeParameters;
