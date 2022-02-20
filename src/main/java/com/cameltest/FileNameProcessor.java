@@ -10,7 +10,7 @@ public class FileNameProcessor implements Processor {
     public static int row_count;
 
     @Override
-    public void process(Exchange exchange) throws Exception {
+    public void process(Exchange exchange) {
         row_count++;
         String headers = exchange.getIn().getHeader("CamelFileName").toString();
         final String file_extension = row_count + "_converted_" +
