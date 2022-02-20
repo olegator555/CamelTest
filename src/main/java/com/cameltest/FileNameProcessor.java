@@ -1,7 +1,9 @@
 package com.cameltest;
 
+
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
+import org.springframework.boot.logging.DeferredLog;
 
 public class FileNameProcessor implements Processor {
 
@@ -14,7 +16,6 @@ public class FileNameProcessor implements Processor {
         final String file_extension = row_count + "_converted_" +
                 headers.split("\\.")[0] + ".json";
         exchange.setProperty("fileName", file_extension);
-        System.out.println("Колличество обработанных строк: " + row_count);
     }
 
 }

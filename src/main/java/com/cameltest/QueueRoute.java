@@ -7,10 +7,21 @@ import org.apache.camel.spi.DataFormat;
 
 
 public class QueueRoute extends RouteBuilder {
+    private final RouteParameters routeParameters;
+
+    public QueueRoute(RouteParameters routeParameters) {
+        this.routeParameters = routeParameters;
+    }
+
     DataFormat bindy = new BindyCsvDataFormat(Model.class);
+
+    public QueueRoute() {
+    }
+
     @Override
-    public void configure() throws Exception {
-        from("file://csv_files?noop=true")
+    public void configure() {
+        from(routeParameters.getFrom())
+                .threads(20)
                 .routeId("CsvFileRoute")
                 .split(body().tokenize("\n")).streaming()
                 .unmarshal(bindy)
@@ -18,7 +29,7 @@ public class QueueRoute extends RouteBuilder {
                 .json(JsonLibrary.Gson)
                 .process(new FileNameProcessor())
                 .log("Unmarshalled model: ${body}")
-                .to("activeMQ:queue:Json_converted?destinationName=${header.CamelFileName}");
+                .to(routeParameters.getTo());
     }
 
 }
